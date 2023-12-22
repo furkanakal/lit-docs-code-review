@@ -7,7 +7,7 @@
 
 ## `signAndSaveAuthMessage()`
 
-- `resources`, `uri`, and `resources` must be passed.
+- `nonce`, `uri`, and `resources` must be passed.
 
 ## `getSessionSigs()`
 
