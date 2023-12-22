@@ -7,7 +7,10 @@ import * as LitJsSdk from '@lit-protocol/lit-node-client';
 
 import { ethers } from 'ethers';
 import { ethConnect } from '@lit-protocol/auth-browser';
-import { LitActionResource } from '@lit-protocol/auth-helpers';
+import { LitAbility, LitAccessControlConditionResource, newSessionCapabilityObject } from '@lit-protocol/auth-helpers';
+import { SiweMessage } from 'siwe';
+import { AuthCallbackParams } from "@lit-protocol/types";
+
 
 declare var window: any
 
@@ -48,7 +51,7 @@ export default function Home() {
     // const walletAddress = await signer.getAddress();
 
     // const nonce_ = litNodeClient.getLatestBlockhash()!;
-    // const uri_ = "http://localhost:3000/";
+    // const uri_ = "https://localhost/login'";
 
     // setStatus('Getting authSig...');
 
@@ -56,7 +59,7 @@ export default function Home() {
     //   web3: web3Provider,
     //   account: walletAddress,
     //   chainId: 1,
-    //   resources: new LitActionResource('*'),
+    //   resources: new LitAccessControlConditionResource('*'),
     //   expiration: new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString(),
     //   uri: uri_,
     //   nonce: nonce_
@@ -68,8 +71,53 @@ export default function Home() {
 
     // // getSessionSigs()
 
-    
+    setStatus('Getting sessionSigs...');
 
+    const nonce = litNodeClient.getLatestBlockhash()!;
+
+    const web3Provider = new ethers.providers.Web3Provider(window.ethereum);
+    const wallet = web3Provider.getSigner();
+
+    const litResource = new LitAccessControlConditionResource('*');
+
+    const authNeededCallback = async ({ chain, resources, expiration, uri }: AuthCallbackParams) => {
+      const domain = "localhost";
+      const message = new SiweMessage({
+        domain,
+        address: await wallet.getAddress(),
+        statement: "Sign a session key to use with Lit Protocol",
+        uri,
+        version: "1",
+        chainId: 1,
+        expirationTime: expiration,
+        resources,
+        nonce,
+      });
+      const toSign = message.prepareMessage();
+      const signature = await wallet.signMessage(toSign);
+    
+      const authSig = {
+        sig: signature,
+        derivedVia: "web3.eth.personal.sign",
+        signedMessage: toSign,
+        address: await wallet.getAddress(),
+      };
+    
+      return authSig;
+    };
+    
+    const sessionSigs = await litNodeClient.getSessionSigs({
+      chain: "ethereum",
+      resourceAbilityRequests: [
+        {
+          resource: litResource,
+          ability: LitAbility.AccessControlConditionDecryption
+        }
+      ],
+      authNeededCallback,
+    });
+
+    console.log(sessionSigs);
 
   }
 

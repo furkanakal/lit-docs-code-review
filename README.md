@@ -4,11 +4,11 @@
 
 - `nonce` must be passed.
 
-
 ## `signAndSaveAuthMessage()`
 
-- `nonce`, `uri`, and `resources` must be passed.
+- `nonceg`, `uri`, and `resources` must be passed.
 
 ## `getSessionSigs()`
 
+- `chainId` is an integer, not a string.
 - 
