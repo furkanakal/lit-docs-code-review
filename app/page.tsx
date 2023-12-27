@@ -68,67 +68,114 @@ export default function Home() {
 
     // -----------------------------------------------------------
 
-    // // getSessionSigs()
+    // getSessionSigs()
 
-    // setStatus('Getting sessionSigs...');
+    setStatus('Getting sessionSigs...');
 
-    // // Create a new ethers.js Wallet instance
-    // const wallet = new ethers.Wallet("<your_private_key>");
+    // Create a new ethers.js Wallet instance
+    const wallet = new ethers.Wallet("c30e1667e308a303109d1c38bc64a851633345099b525e3710db951789f05255");
 
-    // let nonce = litNodeClient.getLatestBlockhash()!;
+    let nonce = litNodeClient.getLatestBlockhash()!;
 
-    // const authNeededCallback: AuthCallback = async ({ chain, resources, uri }) => {
-    //   console.log("authNeededCallback fired!");
+    const authNeededCallback: AuthCallback = async ({ chain, resources, uri }) => {
+      console.log("authNeededCallback fired!");
 
-    //   const domain = "localhost:3000";
-    //   const expiration = new Date(Date.now() + 1000 * 60 * 60).toISOString();
-    //   const message = new SiweMessage({
-    //     domain,
-    //     address: wallet.address,
-    //     statement: "Sign a session key to use with Lit Protocol",
-    //     uri,
-    //     version: "1",
-    //     chainId: 1,
-    //     expirationTime: expiration,
-    //     resources,
-    //     nonce,
-    //   });
+      const domain = "localhost:3000";
+      const expiration = new Date(Date.now() + 1000 * 60 * 60).toISOString();
+      const message = new SiweMessage({
+        domain,
+        address: wallet.address,
+        statement: "Sign a session key to use with Lit Protocol",
+        uri,
+        version: "1",
+        chainId: 1,
+        expirationTime: expiration,
+        resources,
+        nonce,
+      });
       
-    //   const toSign = message.prepareMessage();
-    //   const signature = await wallet.signMessage(toSign);
+      const toSign = message.prepareMessage();
+      const signature = await wallet.signMessage(toSign);
 
-    //   const authSig = {
-    //     sig: signature,
-    //     derivedVia: "web3.eth.personal.sign",
-    //     signedMessage: toSign,
-    //     address: wallet.address,
-    //   };
+      const authSig = {
+        sig: signature,
+        derivedVia: "web3.eth.personal.sign",
+        signedMessage: toSign,
+        address: wallet.address,
+      };
 
-    //   return authSig;
-    // };
+      return authSig;
+    };
 
-    // // Create an access control condition resource
-    // const litResource = new LitAccessControlConditionResource("*");
+    // Create an access control condition resource
+    const litResource = new LitAccessControlConditionResource("*");
 
-    // const sessionSigs = await litNodeClient.getSessionSigs({
-    //   chain: "ethereum",
-    //   resourceAbilityRequests: [
-    //     {
-    //       resource: litResource,
-    //       ability: LitAbility.AccessControlConditionDecryption
-    //     }
-    //   ],
-    //   authNeededCallback,
-    // });
+    let sessionSigs = await litNodeClient.getSessionSigs({
+      chain: "ethereum",
+      resourceAbilityRequests: [
+        {
+          resource: litResource,
+          ability: LitAbility.AccessControlConditionDecryption
+        }
+      ],
+      authNeededCallback,
+    });
     
     // console.log("sessionSigs: ", sessionSigs);
 
-    // setStatus("sessionSigs ready!");
+    setStatus("sessionSigs ready!");
 
     // -----------------------------------------------------------
 
-    // 
+    // Encryption / Decryption
 
+    var unifiedAccessControlConditions = [
+      {
+        conditionType: "evmBasic",
+        contractAddress: "",
+        standardContractType: "",
+        chain: "ethereum",
+        method: "eth_getBalance",
+        parameters: [":userAddress", "latest"],
+        returnValueTest: {
+          comparator: ">=",
+          value: "10000000000000",
+        },
+      },
+    ];
+
+    const chain = "ethereum";
+    
+    // encrypt
+    const { ciphertext, dataToEncryptHash } = await LitJsSdk.zipAndEncryptString(
+      {
+        unifiedAccessControlConditions,
+        chain,
+        sessionSigs,
+        dataToEncrypt: "this is a secret message",
+      },
+      litNodeClient,  
+    );
+
+    sessionSigs = await litNodeClient.getSessionSigs({
+      chain,
+      resourceAbilityRequests: []
+    });
+
+    const decryptedFiles = await LitJsSdk.decryptToZip(
+      {
+        unifiedAccessControlConditions,
+        chain,
+        sessionSigs,
+        ciphertext,
+        dataToEncryptHash,
+      },
+      litNodeClient,
+    );
+    const decryptedString = await decryptedFiles["string.txt"].async(
+      "text"
+    );
+    console.log("decrypted string: ", decryptedString);
   }
 
   return (

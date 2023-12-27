@@ -1,18 +1,22 @@
 # Lit Docs - Code Review
 
-## `checkAndSignAuthMessage()`
+## Wallet Signatures
+
+### `checkAndSignAuthMessage()`
 
 - `nonce` must be passed.
 
-## `signAndSaveAuthMessage()`
+### `signAndSaveAuthMessage()`
 
 - `nonce`, `uri`, and `resources` must be passed.
 
-## `getSessionSigs()`
+## Generating SessionSigs
+
+### `getSessionSigs()`
 
 - `chainId` is an integer, not a string.
 - `hashedEncryptedSymmetricKeyString` is not defined.
 
-## `getSignedToken()`
+## Making Encryption Requests
 
-- `unifiedAccessControlConditions` is not needed anymore.
+- `LitJsSdk.getSessionSigs()` needs to be replaced with `litNodeClient.getSessionSigs()`
