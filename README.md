@@ -11,4 +11,5 @@
 ## `getSessionSigs()`
 
 - `chainId` is an integer, not a string.
-- 
+- `hashedEncryptedSymmetricKeyString` is not defined.
+
