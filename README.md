@@ -13,3 +13,6 @@
 - `chainId` is an integer, not a string.
 - `hashedEncryptedSymmetricKeyString` is not defined.
 
+## `getSignedToken()`
+
+- `unifiedAccessControlConditions` is not needed anymore.

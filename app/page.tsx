@@ -68,62 +68,66 @@ export default function Home() {
 
     // -----------------------------------------------------------
 
-    // getSessionSigs()
+    // // getSessionSigs()
 
-    setStatus('Getting sessionSigs...');
+    // setStatus('Getting sessionSigs...');
 
-    // Create a new ethers.js Wallet instance
-    const wallet = new ethers.Wallet("<your_private_key>");
+    // // Create a new ethers.js Wallet instance
+    // const wallet = new ethers.Wallet("<your_private_key>");
 
-    let nonce = litNodeClient.getLatestBlockhash()!;
+    // let nonce = litNodeClient.getLatestBlockhash()!;
 
-    const authNeededCallback: AuthCallback = async ({ chain, resources, uri }) => {
-      console.log("authNeededCallback fired!");
+    // const authNeededCallback: AuthCallback = async ({ chain, resources, uri }) => {
+    //   console.log("authNeededCallback fired!");
 
-      const domain = "localhost:3000";
-      const expiration = new Date(Date.now() + 1000 * 60 * 60).toISOString();
-      const message = new SiweMessage({
-        domain,
-        address: wallet.address,
-        statement: "Sign a session key to use with Lit Protocol",
-        uri,
-        version: "1",
-        chainId: 1,
-        expirationTime: expiration,
-        resources,
-        nonce,
-      });
+    //   const domain = "localhost:3000";
+    //   const expiration = new Date(Date.now() + 1000 * 60 * 60).toISOString();
+    //   const message = new SiweMessage({
+    //     domain,
+    //     address: wallet.address,
+    //     statement: "Sign a session key to use with Lit Protocol",
+    //     uri,
+    //     version: "1",
+    //     chainId: 1,
+    //     expirationTime: expiration,
+    //     resources,
+    //     nonce,
+    //   });
       
-      const toSign = message.prepareMessage();
-      const signature = await wallet.signMessage(toSign);
+    //   const toSign = message.prepareMessage();
+    //   const signature = await wallet.signMessage(toSign);
 
-      const authSig = {
-        sig: signature,
-        derivedVia: "web3.eth.personal.sign",
-        signedMessage: toSign,
-        address: wallet.address,
-      };
+    //   const authSig = {
+    //     sig: signature,
+    //     derivedVia: "web3.eth.personal.sign",
+    //     signedMessage: toSign,
+    //     address: wallet.address,
+    //   };
 
-      return authSig;
-    };
+    //   return authSig;
+    // };
 
-    // Create an access control condition resource
-    const litResource = new LitAccessControlConditionResource("*");
+    // // Create an access control condition resource
+    // const litResource = new LitAccessControlConditionResource("*");
 
-    const sessionSigs = await litNodeClient.getSessionSigs({
-      chain: "ethereum",
-      resourceAbilityRequests: [
-        {
-          resource: litResource,
-          ability: LitAbility.AccessControlConditionDecryption
-        }
-      ],
-      authNeededCallback,
-    });
+    // const sessionSigs = await litNodeClient.getSessionSigs({
+    //   chain: "ethereum",
+    //   resourceAbilityRequests: [
+    //     {
+    //       resource: litResource,
+    //       ability: LitAbility.AccessControlConditionDecryption
+    //     }
+    //   ],
+    //   authNeededCallback,
+    // });
     
-    console.log("sessionSigs: ", sessionSigs);
+    // console.log("sessionSigs: ", sessionSigs);
 
-    setStatus("sessionSigs ready!");
+    // setStatus("sessionSigs ready!");
+
+    // -----------------------------------------------------------
+
+    // 
 
   }
 
