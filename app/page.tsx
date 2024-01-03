@@ -11,7 +11,8 @@ import { LitAbility, LitAccessControlConditionResource } from '@lit-protocol/aut
 import { AuthCallback } from '@lit-protocol/types';
 import { SiweMessage } from 'siwe';
 
-import { PKPEthersWallet } from '@lit-protocol/pkp-ethers';
+import { LitContracts } from '@lit-protocol/contracts-sdk';
+import { AuthMethodScope, AuthMethodType } from '@lit-protocol/constants';
 
 declare var window: any
 
@@ -184,16 +185,31 @@ export default function Home() {
 
     // pkpWallet
 
-    const pkpWallet = new PKPEthersWallet({
-      controllerAuthSig: await LitJsSdk.checkAndSignAuthMessage({ chain: "ethereum", nonce: litNodeClient.getLatestBlockhash()! }),
-      // Or you can also pass in controllerSessionSigs
-      pkpPubKey: "0484242fcc29afaf88b572eccae157f30f7d254c406d148a3b5bf226d0f8454993c67027666a5c666b1b90ecd0467b11792b916a319775d9e231597303a0673f19",
-      rpc: "https://chain-rpc.litprotocol.com/http",
+    const web3Provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = web3Provider.getSigner();
+
+    const contractClient = new LitContracts({ signer });
+    await contractClient.connect();
+
+    const authSig = await LitJsSdk.checkAndSignAuthMessage({
+      chain: "ethereum",
+      nonce: litNodeClient.getLatestBlockhash()!
+    })
+
+    const authMethod = {
+      authMethodType: AuthMethodType.EthWallet,
+      accessToken: JSON.stringify(authSig)
+    };
+    
+    const mintInfo = await contractClient.mintWithAuth({
+      authMethod: authMethod,
+      scopes: [
+        // AuthMethodScope.NoPermissions,
+        AuthMethodScope.SignAnything, 
+      ],
     });
 
-    await pkpWallet.init();
-
-    console.log("pkpWallet: ", pkpWallet);
+    console.log("mintInfo: ", mintInfo);
 
   }
 
